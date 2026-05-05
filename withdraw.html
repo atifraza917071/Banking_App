@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Withdraw — BankFlow{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-arrow-up-circle-fill text-danger me-2"></i>Withdraw Funds</h1>
+  <p>Withdraw money from your account</p>
+</div>
+<div class="row">
+  <div class="col-lg-6">
+    <div class="bcard">
+      <form method="POST" novalidate>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-credit-card me-1"></i>Select Account</label>
+          <select class="form-select" name="account_id" required id="accSelect">
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}" data-balance="{{ acc.balance }}">
+              {{ acc.account_type }} — {{ acc.account_number }} (₹{{ "{:,.2f}".format(acc.balance) }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label"><i class="bi bi-currency-rupee me-1"></i>Amount (₹)</label>
+          <div class="input-group">
+            <span class="input-group-text" style="border-radius:10px 0 0 10px;border:1.5px solid #e2e8f0;background:#f8fafc;">₹</span>
+            <input type="number" class="form-control" name="amount" id="amtInput" min="1" step="0.01" required placeholder="0.00" style="border-radius:0 10px 10px 0;"/>
+          </div>
+          <div class="invalid-feedback">Enter a valid positive amount.</div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex gap-2 flex-wrap">
+            {% for amt in [500, 1000, 2000, 5000] %}
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setAmt({{ amt }})" style="border-radius:8px;">₹{{ "{:,}".format(amt) }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label"><i class="bi bi-chat-left-text me-1"></i>Description <span class="text-muted fw-normal">(optional)</span></label>
+          <input type="text" class="form-control" name="description" placeholder="e.g. ATM withdrawal, Bill payment"/>
+        </div>
+        <!-- BALANCE INDICATOR -->
+        <div class="alert alert-warning py-2 px-3 mb-4" style="border-radius:10px;font-size:.85rem;" id="balAlert">
+          <i class="bi bi-info-circle me-2"></i>Available balance: <strong id="availBal">₹{{ "{:,.2f}".format(accounts[0].balance) if accounts else '0.00' }}</strong>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-danger fw-semibold" style="border-radius:10px;padding:.65rem 1.5rem;"><i class="bi bi-arrow-up-circle me-2"></i>Withdraw</button>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="bcard" style="background:#fef2f2;border-color:#fecaca;">
+      <h6 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Withdrawal Policy</h6>
+      <ul class="list-unstyled mb-0" style="font-size:.875rem;color:#991b1b;">
+        <li class="mb-2"><i class="bi bi-dot me-1"></i>Withdrawal cannot exceed available balance</li>
+        <li class="mb-2"><i class="bi bi-dot me-1"></i>Transactions are processed immediately</li>
+        <li class="mb-2"><i class="bi bi-dot me-1"></i>All withdrawals are recorded in history</li>
+        <li><i class="bi bi-dot me-1"></i>Contact support for reversal requests</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<script>
+const accSelect = document.getElementById('accSelect');
+const availBal = document.getElementById('availBal');
+accSelect.addEventListener('change', () => {
+  const opt = accSelect.selectedOptions[0];
+  const bal = parseFloat(opt.dataset.balance);
+  availBal.textContent = '₹' + bal.toLocaleString('en-IN', {minimumFractionDigits:2});
+});
+function setAmt(v) {
+  const inp = document.getElementById('amtInput');
+  inp.value = v;
+  inp.classList.remove('is-invalid'); inp.classList.add('is-valid');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — BankFlow{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <div>
+    <h1>Welcome back, {{ session.user_name.split()[0] }} 👋</h1>
+    <p>Here's your financial overview</p>
+  </div>
+  <span class="badge bg-light text-secondary border" style="font-size:.8rem;padding:.5rem .9rem;border-radius:999px;">
+    <i class="bi bi-calendar3 me-1"></i>
+    <span id="dateNow"></span>
+  </span>
+</div>
+
+<!-- ACCOUNT STAT CARDS -->
+<div class="row g-3 mb-4">
+  {% for acc in accounts %}
+  <div class="col-sm-6 col-lg-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#eff6ff;">
+        {% if acc.account_type == 'Savings' %}💰
+        {% elif acc.account_type == 'Current' %}🏢
+        {% else %}💼{% endif %}
+      </div>
+      <div class="stat-label">{{ acc.account_type }} Account</div>
+      <div class="stat-value">₹{{ "{:,.2f}".format(acc.balance) }}</div>
+      <div class="stat-sub"><i class="bi bi-credit-card me-1"></i>{{ acc.account_number }}</div>
+    </div>
+  </div>
+  {% endfor %}
+  {% if accounts %}
+  <div class="col-sm-6 col-lg-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1a56db,#3b82f6);border:none;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);">🏦</div>
+      <div class="stat-label" style="color:rgba(255,255,255,.8);">Total Balance</div>
+      <div class="stat-value" style="color:#fff;">₹{{ "{:,.2f}".format(accounts | sum(attribute='balance')) }}</div>
+      <div class="stat-sub" style="color:rgba(255,255,255,.7);">across {{ accounts|length }} account(s)</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <a href="{{ url_for('deposit') }}" class="action-btn">
+      <div class="aicon" style="background:#dcfce7;"><i class="bi bi-arrow-down-circle-fill text-success fs-4"></i></div>
+      Deposit
+    </a>
+  </div>
+  <div class="col-4">
+    <a href="{{ url_for('withdraw') }}" class="action-btn">
+      <div class="aicon" style="background:#fee2e2;"><i class="bi bi-arrow-up-circle-fill text-danger fs-4"></i></div>
+      Withdraw
+    </a>
+  </div>
+  <div class="col-4">
+    <a href="{{ url_for('transfer') }}" class="action-btn">
+      <div class="aicon" style="background:#dbeafe;"><i class="bi bi-arrow-left-right text-primary fs-4"></i></div>
+      Transfer
+    </a>
+  </div>
+</div>
+
+<!-- RECENT TRANSACTIONS -->
+<div class="bcard p-0" style="overflow:hidden;">
+  <div class="d-flex align-items-center justify-content-between px-4 py-3" style="border-bottom:1px solid #f1f5f9;">
+    <h6 class="fw-bold mb-0" style="color:#0f172a;"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Transactions</h6>
+    <a href="{{ url_for('transactions') }}" class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-size:.8rem;">View all <i class="bi bi-arrow-right ms-1"></i></a>
+  </div>
+  {% if transactions %}
+  <div class="table-responsive">
+    <table class="table txn-table mb-0">
+      <thead>
+        <tr>
+          <th>Type</th><th>Description</th><th>Account</th>
+          <th class="text-end">Amount</th><th class="text-end">Balance After</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td>
+            {% set ttype = t.type | lower | replace(' ', '-') %}
+            <span class="txn-badge txn-{{ ttype }}">
+              {% if t.type == 'Deposit' %}<i class="bi bi-arrow-down"></i>
+              {% elif t.type == 'Withdrawal' %}<i class="bi bi-arrow-up"></i>
+              {% elif t.type == 'Transfer Out' %}<i class="bi bi-arrow-right"></i>
+              {% else %}<i class="bi bi-arrow-left"></i>{% endif %}
+              {{ t.type }}
+            </span>
+          </td>
+          <td class="text-muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.description or '—' }}</td>
+          <td><code style="font-size:.78rem;background:#f1f5f9;padding:.15rem .4rem;border-radius:5px;">{{ t.account_number }}</code></td>
+          <td class="text-end {{ 'amount-pos' if t.type in ['Deposit','Transfer In'] else 'amount-neg' }}">
+            {{ '+' if t.type in ['Deposit','Transfer In'] else '−' }}₹{{ "{:,.2f}".format(t.amount) }}
+          </td>
+          <td class="text-end text-muted">₹{{ "{:,.2f}".format(t.balance_after) }}</td>
+          <td class="text-muted" style="font-size:.8rem;">{{ t.timestamp[:16] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+    No transactions yet. Make your first deposit!
+  </div>
+  {% endif %}
+</div>
+<script>
+  document.getElementById('dateNow').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+</script>
+{% endblock %}
