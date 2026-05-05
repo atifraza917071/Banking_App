@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Transfer — BankFlow{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-arrow-left-right text-primary me-2"></i>Transfer Funds</h1>
+  <p>Send money to another account instantly</p>
+</div>
+<div class="row">
+  <div class="col-lg-6">
+    <div class="bcard">
+      <form method="POST" novalidate>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-wallet2 me-1"></i>From Account</label>
+          <select class="form-select" name="from_account" required id="fromAcc">
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}" data-balance="{{ acc.balance }}">
+              {{ acc.account_type }} — {{ acc.account_number }} (₹{{ "{:,.2f}".format(acc.balance) }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-person-circle me-1"></i>Recipient Account Number</label>
+          <input type="text" class="form-control" name="to_account_number" required placeholder="e.g. ACC1234567890"/>
+          <div class="invalid-feedback">Please enter the recipient's account number.</div>
+          <div class="form-text"><i class="bi bi-info-circle me-1"></i>Ask the recipient for their BankFlow account number</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><i class="bi bi-currency-rupee me-1"></i>Amount (₹)</label>
+          <div class="input-group">
+            <span class="input-group-text" style="border-radius:10px 0 0 10px;border:1.5px solid #e2e8f0;background:#f8fafc;">₹</span>
+            <input type="number" class="form-control" name="amount" min="1" step="0.01" required placeholder="0.00" style="border-radius:0 10px 10px 0;"/>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="alert alert-info py-2 px-3" style="border-radius:10px;font-size:.85rem;">
+            <i class="bi bi-info-circle me-2"></i>Available: <strong id="availBal">₹{{ "{:,.2f}".format(accounts[0].balance) if accounts else '0.00' }}</strong>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label"><i class="bi bi-chat-left-text me-1"></i>Description <span class="text-muted fw-normal">(optional)</span></label>
+          <input type="text" class="form-control" name="description" placeholder="e.g. Rent payment, Split bill"/>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Transfer Now</button>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="bcard" style="background:#fffbeb;border-color:#fde68a;">
+      <h6 class="fw-bold mb-3" style="color:#92400e;"><i class="bi bi-shield-exclamation me-2"></i>Transfer Guidelines</h6>
+      <ul class="list-unstyled mb-0" style="font-size:.875rem;color:#78350f;">
+        <li class="mb-2"><i class="bi bi-exclamation-circle me-2 text-warning"></i>Verify recipient account number carefully</li>
+        <li class="mb-2"><i class="bi bi-exclamation-circle me-2 text-warning"></i>Transfers cannot be reversed once sent</li>
+        <li class="mb-2"><i class="bi bi-exclamation-circle me-2 text-warning"></i>Cannot transfer to your own account</li>
+        <li><i class="bi bi-exclamation-circle me-2 text-warning"></i>Balance must be sufficient before transfer</li>
+      </ul>
+    </div>
+    <div class="bcard mt-0">
+      <h6 class="fw-bold mb-3" style="color:#0f172a;"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>How it works</h6>
+      <div class="d-flex flex-column gap-2" style="font-size:.875rem;">
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge rounded-circle bg-primary" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;">1</span>
+          <span>Enter recipient's account number</span>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge rounded-circle bg-primary" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;">2</span>
+          <span>Enter amount to transfer</span>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge rounded-circle bg-primary" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;">3</span>
+          <span>Funds credited instantly</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('fromAcc').addEventListener('change', function() {
+  const bal = parseFloat(this.selectedOptions[0].dataset.balance);
+  document.getElementById('availBal').textContent = '₹' + bal.toLocaleString('en-IN',{minimumFractionDigits:2});
+});
+</script>
+{% endblock %}
